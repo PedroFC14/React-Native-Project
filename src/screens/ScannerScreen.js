@@ -4,12 +4,15 @@ import { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 
 export default function ScannerScreen() {
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const { qrHistory, setQrHistory } = useContext(AppContext);
 
   useEffect(() => {
-    requestPermission();
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
   }, []);
 
   const handleBarcodeScanned = ({ data }) => {
@@ -18,11 +21,11 @@ export default function ScannerScreen() {
     setQrHistory([...qrHistory, data]);
   };
 
-  if (!permission) {
+  if (hasPermission === null) {
     return <Text>Solicitando permiso de cámara...</Text>;
   }
 
-  if (!permission.granted) {
+  if (hasPermission === false) {
     return <Text>No hay permiso para usar la cámara</Text>;
   }
 
