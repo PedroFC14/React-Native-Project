@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, Button } from 'react-native';
-import { CameraView, Camera } from 'expo-camera';
-import { useState, useEffect, useContext } from 'react';
+import { Camera, CameraView } from 'expo-camera';
+import { useContext, useEffect, useState } from 'react';
+import { Button, Linking, StyleSheet, Text, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
-import { Linking } from 'react-native';
 
 export default function ScannerScreen() {
   const [hasPermission, setHasPermission] = useState(null);
@@ -20,7 +19,7 @@ export default function ScannerScreen() {
 
   const handleBarcodeScanned = ({ data }) => {
     if (scanned) return;
-  
+
     setScanned(true);
     setLastQR(data);
     const now = new Date();
@@ -33,12 +32,12 @@ export default function ScannerScreen() {
 
     setQrHistory([...qrHistory, qrItem]);
 
-  
+
     if (data.startsWith('http://') || data.startsWith('https://')) {
       Linking.openURL(data);
     }
   };
-  
+
 
   if (hasPermission === null) {
     return <Text>Requesting camera permission...</Text>;

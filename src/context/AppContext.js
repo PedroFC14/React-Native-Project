@@ -1,9 +1,10 @@
-import { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useEffect, useState } from 'react';
 
 export const AppContext = createContext();
 
 const STORAGE_KEY = 'qr_history';
+const REMINDERS_KEY = 'reminders_history';
 
 export function AppProvider({ children }) {
   const [qrHistory, setQrHistory] = useState([]);
@@ -12,12 +13,18 @@ export function AppProvider({ children }) {
   // Load history when initiating the app
   useEffect(() => {
     loadHistory();
+    loadReminders();
   }, []);
 
   // Save history each time it changes
   useEffect(() => {
     saveHistory();
   }, [qrHistory]);
+
+  // Save reminders each time it changes
+  useEffect(() => {
+    saveReminders();
+  }, [reminders]);
 
   const loadHistory = async () => {
     try {
@@ -35,6 +42,26 @@ export function AppProvider({ children }) {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(qrHistory));
     } catch (error) {
       console.log('Error saving QR history', error);
+    }
+  };
+
+  // for reminders (contact/calls/notifications module)
+  const loadReminders = async () => {
+    try {
+      const storedReminders = await AsyncStorage.getItem(REMINDERS_KEY);
+      if (storedReminders) {
+        setReminders(JSON.parse(storedReminders));
+      }
+    } catch (error) {
+      console.log('Error loading reminders', error);
+    }
+  };
+
+  const saveReminders = async () => {
+    try {
+      await AsyncStorage.setItem(REMINDERS_KEY, JSON.stringify(reminders));
+    } catch (error) {
+      console.log('Error saving reminders', error);
     }
   };
 
