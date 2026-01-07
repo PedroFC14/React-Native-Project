@@ -1,9 +1,11 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Button } from 'react-native';
 import { useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 
+
 export default function DashboardScreen() {
-  const { qrHistory } = useContext(AppContext);
+  const { qrHistory, setQrHistory } = useContext(AppContext);
+
 
   return (
     <View style={styles.container}>
@@ -12,6 +14,17 @@ export default function DashboardScreen() {
       <Text style={styles.subtitle}>
         Total scanned QRs: {qrHistory.length}
       </Text>
+
+      {qrHistory.length > 0 && (
+        <View style={styles.clearButton}>
+          <Button
+            title="Delete history"
+            color="#d9534f"
+            onPress={() => setQrHistory([])}
+          />
+        </View>
+      )}
+
 
       {qrHistory.length === 0 ? (
         <Text style={styles.emptyText}>No scanned QRs for the moment</Text>
@@ -67,5 +80,10 @@ const styles = StyleSheet.create({
   qrDate: {
     fontSize: 12,
     color: '#666',
-  },  
+  },
+
+  clearButton: {
+    marginBottom: 15,
+  },
+  
 });
