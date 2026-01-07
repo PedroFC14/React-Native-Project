@@ -23,7 +23,16 @@ export default function ScannerScreen() {
   
     setScanned(true);
     setLastQR(data);
-    setQrHistory([...qrHistory, data]);
+    const now = new Date();
+
+    const qrItem = {
+      value: data,
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString(),
+    };
+
+    setQrHistory([...qrHistory, qrItem]);
+
   
     if (data.startsWith('http://') || data.startsWith('https://')) {
       Linking.openURL(data);
@@ -32,11 +41,11 @@ export default function ScannerScreen() {
   
 
   if (hasPermission === null) {
-    return <Text>Solicitando permiso de cámara...</Text>;
+    return <Text>Requesting camera permission...</Text>;
   }
 
   if (hasPermission === false) {
-    return <Text>No hay permiso para usar la cámara</Text>;
+    return <Text>No permission to use the camera</Text>;
   }
 
   return (
@@ -50,14 +59,14 @@ export default function ScannerScreen() {
 
       {lastQR && (
         <View style={styles.resultBox}>
-          <Text style={styles.resultTitle}>QR escaneado:</Text>
+          <Text style={styles.resultTitle}>scanned QR:</Text>
           <Text style={styles.resultText}>{lastQR}</Text>
         </View>
       )}
 
       {scanned && (
         <View style={styles.button}>
-          <Button title="Escanear otro QR" onPress={() => {
+          <Button title="Scan another QR" onPress={() => {
             setScanned(false);
             setLastQR(null);
           }} />

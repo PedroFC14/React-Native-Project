@@ -1,10 +1,71 @@
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { useContext } from 'react';
+import { AppContext } from '../context/AppContext';
 
 export default function DashboardScreen() {
+  const { qrHistory } = useContext(AppContext);
+
   return (
-    <View>
-      <Text>Dashboard</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Dashboard</Text>
+
+      <Text style={styles.subtitle}>
+        Total scanned QRs: {qrHistory.length}
+      </Text>
+
+      {qrHistory.length === 0 ? (
+        <Text style={styles.emptyText}>No scanned QRs for the moment</Text>
+      ) : (
+        <FlatList
+          data={qrHistory}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.qrItem}>
+              <Text style={styles.qrValue}>{item.value}</Text>
+              <Text style={styles.qrDate}>
+                {item.date} · {item.time}
+              </Text>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  subtitle: {
+    marginBottom: 15,
+  },
+  emptyText: {
+    fontStyle: 'italic',
+    color: '#666',
+  },
+  qrItem: {
+    padding: 12,
+    backgroundColor: '#f2f2f2',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  qrText: {
+    fontSize: 14,
+  },
+  qrValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  
+  qrDate: {
+    fontSize: 12,
+    color: '#666',
+  },  
+});
