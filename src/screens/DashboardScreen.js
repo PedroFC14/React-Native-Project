@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, Button } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Button, Alert} from 'react-native';
 import { useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 
@@ -6,7 +6,24 @@ import { AppContext } from '../context/AppContext';
 export default function DashboardScreen() {
   const { qrHistory, setQrHistory } = useContext(AppContext);
 
-
+  const confirmClearHistory = () => {
+    Alert.alert(
+      'Delete history',
+      'Are you sure you want to delete all scanned QR codes?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => setQrHistory([]),
+        },
+      ]
+    );
+  };
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Dashboard</Text>
@@ -18,9 +35,9 @@ export default function DashboardScreen() {
       {qrHistory.length > 0 && (
         <View style={styles.clearButton}>
           <Button
-            title="Delete history"
+            title="Clear history"
             color="#d9534f"
-            onPress={() => setQrHistory([])}
+            onPress={confirmClearHistory}
           />
         </View>
       )}
