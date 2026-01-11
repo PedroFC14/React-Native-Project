@@ -1,4 +1,5 @@
 import * as Contacts from 'expo-contacts';
+import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,46 +13,70 @@ import {
   View,
 } from 'react-native';
 
+// Immediate notifications (Expo Go compatible)
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export default function ContactsScreen() {
   const [contacts, setContacts] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [customData, setCustomData] = useState({});
 
   useEffect(() => {
     (async () => {
-      // Request permissions from Contacts
-      const { status: contactStatus } =
-        await Contacts.requestPermissionsAsync();
-
-      if (contactStatus === 'granted') {
-        // Get contacts (Only those with a phone number)
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.PhoneNumbers],
-        });
-
-        if (data.length > 0) {
-          // Filter contacts with name and phone number
-          const validContacts = data.filter(
-            c => c.name && c.phoneNumbers && c.phoneNumbers.length > 0
-          );
-          setContacts(validContacts);
-        }
-      } else {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== 'granted') {
         Alert.alert('Permission denied', 'Access to contacts is needed');
+        return;
       }
+
+      const { data } = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.PhoneNumbers],
+      });
+
+      const validContacts = data.filter(
+        c => c.name && c.phoneNumbers && c.phoneNumbers.length > 0
+      );
+
+      setContacts(validContacts);
     })();
   }, []);
 
-  const handleContactPress = (contact) => {
+  const handleContactPress = async (contact) => {
     setSelectedContact(contact);
     setModalVisible(true);
+
+    if (customData[contact.id]?.isEmergency) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Emergency contact',
+          body: 'You have selected an emergency contact!',
+        },
+        trigger: null,
+      });
+    }
+  };
+
+  const toggleEmergency = () => {
+    setCustomData(prev => ({
+      ...prev,
+      [selectedContact.id]: {
+        ...prev[selectedContact.id],
+        isEmergency: !prev[selectedContact.id]?.isEmergency,
+      },
+    }));
   };
 
   const filteredContacts = contacts.filter(contact => {
     const name = contact.name.toLowerCase();
     const phone = contact.phoneNumbers[0]?.number || '';
-
     return (
       name.includes(searchText.toLowerCase()) ||
       phone.includes(searchText)
@@ -72,45 +97,66 @@ export default function ContactsScreen() {
       <FlatList
         data={filteredContacts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.contactItem}
-            onPress={() => handleContactPress(item)}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.name[0]}</Text>
-            </View>
-            <View>
-              <Text style={styles.contactName}>{item.name}</Text>
-              <Text style={styles.contactPhone}>
-                {item.phoneNumbers && item.phoneNumbers[0]?.number}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+          const isEmergency = customData[item.id]?.isEmergency;
+          return (
+            <TouchableOpacity
+              style={styles.contactItem}
+              onPress={() => handleContactPress(item)}
+            >
+              <View style={[
+                styles.avatar,
+                isEmergency && { backgroundColor: '#FF3B30' }
+              ]}>
+                <Text style={styles.avatarText}>
+                  {isEmergency ? '🚨' : item.name[0]}
+                </Text>
+              </View>
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.contactName}>{item.name}</Text>
+                <Text style={styles.contactPhone}>
+                  {item.phoneNumbers[0]?.number}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
       />
 
-      {/* Modal to show contact info */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>
-              {selectedContact?.name}
-            </Text>
+            <Text style={styles.modalText}>{selectedContact?.name}</Text>
 
-            <Text style={{ marginBottom: 20 }}>
-              {selectedContact?.phoneNumbers?.[0]?.number}
-            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Description"
+              value={customData[selectedContact?.id]?.description || ''}
+              onChangeText={(text) =>
+                setCustomData(prev => ({
+                  ...prev,
+                  [selectedContact.id]: {
+                    ...prev[selectedContact.id],
+                    description: text,
+                  },
+                }))
+              }
+            />
 
             <Button
-              title="Close"
-              onPress={() => setModalVisible(false)}
+              title={
+                customData[selectedContact?.id]?.isEmergency
+                  ? 'Remove emergency contact'
+                  : 'Mark as emergency contact'
+              }
+              color="red"
+              onPress={toggleEmergency}
             />
+
+            <View style={{ marginTop: 15 }}>
+              <Button title="Close" onPress={() => setModalVisible(false)} />
+            </View>
           </View>
         </View>
       </Modal>
@@ -172,29 +218,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 22,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalView: {
-    margin: 20,
     backgroundColor: 'white',
     borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    padding: 30,
     width: '80%',
   },
   modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 10,
+    marginVertical: 10,
   },
 });
