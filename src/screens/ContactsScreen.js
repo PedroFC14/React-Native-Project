@@ -3,7 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { useContext, useEffect, useState } from 'react';
 import { Alert, Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
-// Configuración para que las notificaciones se muestren incluso con la app abierta
+// Settings to display notifications even when the app is open
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -21,61 +21,59 @@ export default function ContactsScreen() {
 
   useEffect(() => {
     (async () => {
-      // 1. Pedir permisos de Contactos
+      // 1. Request permissions from Contacts
       const { status: contactStatus } = await Contacts.requestPermissionsAsync();
 
-      // 2. Pedir permisos de Notificaciones
+      // 2. Request Notification permissions
       const { status: notificationStatus } = await Notifications.requestPermissionsAsync();
       if (contactStatus === 'granted') {
-        // 3. Obtener contactos (Solo los que tienen número de teléfono)
+        // 3. Get contacts (Only those with a phone number)
         const { data } = await Contacts.getContactsAsync({
           fields: [Contacts.Fields.PhoneNumbers],
         });
         if (data.length > 0) {
-          // Filtramos un poco para asegurar que tengan nombre y teléfono
+          // We filtered a little to make sure they had a name and phone number.
           const validContacts = data.filter(
             c => c.name && c.phoneNumbers && c.phoneNumbers.length > 0
           );
           setContacts(validContacts);
         }
       } else {
-        Alert.alert('Permiso denegado', 'Se necesita acceso a contactos');
+        Alert.alert('Permission denied', 'Access to contacts is needed');
       }
     })();
   }, []);
 
   const handleContactPress = (contact) => {
     setSelectedContact(contact);
-    setMinutes(''); // Resetear input
+    setMinutes(''); // Reset input
     setModalVisible(true);
   };
 
   const scheduleNotification = async () => {
     const min = parseInt(minutes);
-    // Validamos que sea un número positivo. 
-    // Nota: Para probar rápido, puedes quitar la validación de >0 y poner segundos directos si quieres, 
-    // pero para producción min > 0 está bien.
+    // Validate that is a positive number
     if (isNaN(min) || min <= 0) {
-      Alert.alert('Error', 'Por favor ingresa un número válido de minutos');
+      Alert.alert('Error', 'Please enter a valid number of minutes');
       return;
     }
 
-    const timeInSeconds = min * 60; // Convertimos minutos a segundos
-    console.log(`Intentando programar notificación en ${timeInSeconds} segundos...`);
-    // Programar la notificación
+    const timeInSeconds = min * 60; // Convert minutes to seconds
+    console.log(`Trying to schedule a notification in ${timeInSeconds} seconds...`);
+    // Program the notification
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Recordatorio de llamada 📞",
-        body: `Es hora de llamar a ${selectedContact.name}`,
+        title: "Call reminder",
+        body: `Is time to call ${selectedContact.name}`,
         data: { contactId: selectedContact.id, phone: selectedContact.phoneNumbers[0].number },
       },
       trigger: {
         seconds: timeInSeconds,
-        channelId: 'default', // <--- Importante para Android
+        channelId: 'default', // <--- Importante for Android
       },
     });
-    console.log("Notificación programada con ID:", id);
-    // Guardar en el historial
+    console.log("Scheduled notification with ID:", id);
+    // store the history
     const newReminder = {
       id: id || Date.now().toString(),
       contactName: selectedContact.name,
@@ -86,7 +84,7 @@ export default function ContactsScreen() {
     setReminders([...reminders, newReminder]);
     setModalVisible(false);
     setSelectedContact(null);
-    Alert.alert('Éxito', `Recordatorio creado. Espera ${min} minuto(s) para recibirlo.`);
+    Alert.alert('Succes', `Reminder created. Wait ${min} minute(s) to recieve it.`);
 
   };
   return (
@@ -113,7 +111,7 @@ export default function ContactsScreen() {
           </TouchableOpacity>
         )}
       />
-      {/* Modal para programar la llamada */}
+      {/* Modal to program the call */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -154,7 +152,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    marginTop: 30, // Un poco de espacio arriba
+    marginTop: 30, // A little bit of space up
   },
   contactItem: {
     flexDirection: 'row',
@@ -185,7 +183,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  // Estilos del Modal
+  // Modal styles
   centeredView: {
     flex: 1,
     justifyContent: 'center',

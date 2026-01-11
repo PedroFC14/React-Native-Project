@@ -114,7 +114,7 @@ export default function DashboardScreen() {
   const { qrHistory, setQrHistory, reminders, setReminders } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('qr'); // 'qr' | 'calls'
 
-  // Seleccionamos qué lista mostrar según la pestaña activa
+  //We select which list to display based on the active tab.
   const data = activeTab === 'qr' ? qrHistory : reminders;
 
   const confirmClearHistory = () => {
@@ -140,7 +140,7 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Dashboard</Text>
 
-      {/* Pestañas para cambiar de vista */}
+      {/* Tabs to change view */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'qr' && styles.activeTab]}
@@ -182,13 +182,13 @@ export default function DashboardScreen() {
           renderItem={({ item }) => (
             <View style={styles.itemCard}>
               {activeTab === 'qr' ? (
-                // Renderizado de QR
+                // QR Rendering
                 <>
                   <Text style={styles.itemValue}>{item.value}</Text>
                   <Text style={styles.itemDate}>{item.date} · {item.time}</Text>
                 </>
               ) : (
-                // Renderizado de Llamada
+                // Call Rendering
                 <>
                   <Text style={styles.itemValue}>📞 {item.contactName}</Text>
                   <Text style={styles.itemSub}>{item.phoneNumber}</Text>
