@@ -1,10 +1,11 @@
 import * as Contacts from 'expo-contacts';
 import * as Notifications from 'expo-notifications';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react'; // <--- Añadido useContext
 import {
   Alert,
   Button,
   FlatList,
+  Linking,
   Modal,
   StyleSheet,
   Text,
@@ -12,8 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AppContext } from '../context/AppContext'; // <--- Importamos el contexto
 
-// Immediate notifications (Expo Go compatible)
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -28,6 +29,9 @@ export default function ContactsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [customData, setCustomData] = useState({});
+
+  // <--- 1. RECUPERAMOS EL HISTORIAL DEL CONTEXTO
+  const { reminders, setReminders } = useContext(AppContext);
 
   useEffect(() => {
     (async () => {
@@ -61,6 +65,30 @@ export default function ContactsScreen() {
         },
         trigger: null,
       });
+    }
+  };
+
+  // <--- 2. FUNCIÓN DE LLAMADA ACTUALIZADA
+  const handleCall = () => {
+    if (selectedContact?.phoneNumbers?.[0]?.number) {
+      const phoneNumber = selectedContact.phoneNumbers[0].number;
+      
+      // Abrir teléfono
+      Linking.openURL(`tel:${phoneNumber}`);
+
+      // GUARDAR EN EL HISTORIAL
+      const newCallLog = {
+        id: Date.now().toString(),
+        contactName: selectedContact.name,
+        phoneNumber: phoneNumber,
+        scheduledTime: new Date().toLocaleString(), // Fecha actual
+        type: 'history', // <--- Marca especial para diferenciarlo
+      };
+
+      setReminders([...reminders, newCallLog]);
+
+    } else {
+      Alert.alert("Error", "Este contacto no tiene un número válido.");
     }
   };
 
@@ -128,6 +156,10 @@ export default function ContactsScreen() {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>{selectedContact?.name}</Text>
+            
+            <Text style={{textAlign: 'center', marginBottom: 10, color: '#666'}}>
+              {selectedContact?.phoneNumbers?.[0]?.number}
+            </Text>
 
             <TextInput
               style={styles.input}
@@ -143,19 +175,26 @@ export default function ContactsScreen() {
                 }))
               }
             />
-
+            
             <Button
               title={
                 customData[selectedContact?.id]?.isEmergency
                   ? 'Remove emergency contact'
                   : 'Mark as emergency contact'
               }
-              color="red"
+              color={customData[selectedContact?.id]?.isEmergency ? "#FF3B30" : "#FF9500"}
               onPress={toggleEmergency}
             />
 
+            <View style={{ marginTop: 10 }}>
+              <Button 
+                title={`Call ${selectedContact?.name}`} 
+                onPress={handleCall} 
+              />
+            </View>
+
             <View style={{ marginTop: 15 }}>
-              <Button title="Close" onPress={() => setModalVisible(false)} />
+              <Button title="Close" color="#666" onPress={() => setModalVisible(false)} />
             </View>
           </View>
         </View>
@@ -225,11 +264,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     width: '80%',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
   },
   modalText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
     textAlign: 'center',
   },
   input: {
@@ -237,6 +281,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 10,
     padding: 10,
-    marginVertical: 10,
+    marginBottom: 15,
+    marginTop: 5,
   },
 });

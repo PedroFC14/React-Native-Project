@@ -1,111 +1,3 @@
-// import { useContext, useState } from 'react';
-// import { Alert, Button, FlatList, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-// import { AppContext } from '../context/AppContext';
-
-
-// export default function DashboardScreen() {
-//   const { qrHistory, setQrHistory } = useContext(AppContext);
-
-//   const confirmClearHistory = () => {
-//     Alert.alert(
-//       'Delete history',
-//       'Are you sure you want to delete all scanned QR codes?',
-//       [
-//         {
-//           text: 'Cancel',
-//           style: 'cancel',
-//         },
-//         {
-//           text: 'Delete',
-//           style: 'destructive',
-//           onPress: () => setQrHistory([]),
-//         },
-//       ]
-//     );
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Dashboard</Text>
-
-//       <Text style={styles.subtitle}>
-//         Total scanned QRs: {qrHistory.length}
-//       </Text>
-
-//       {qrHistory.length > 0 && (
-//         <View style={styles.clearButton}>
-//           <Button
-//             title="Clear history"
-//             color="#d9534f"
-//             onPress={confirmClearHistory}
-//           />
-//         </View>
-//       )}
-
-
-//       {qrHistory.length === 0 ? (
-//         <Text style={styles.emptyText}>No scanned QRs for the moment</Text>
-//       ) : (
-//         <FlatList
-//           data={qrHistory}
-//           keyExtractor={(item, index) => index.toString()}
-//           renderItem={({ item }) => (
-//             <View style={styles.qrItem}>
-//               <Text style={styles.qrValue}>{item.value}</Text>
-//               <Text style={styles.qrDate}>
-//                 {item.date} · {item.time}
-//               </Text>
-//             </View>
-//           )}
-//         />
-//       )}
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     padding: 20,
-//   },
-//   title: {
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//     marginBottom: 10,
-//   },
-//   subtitle: {
-//     marginBottom: 15,
-//   },
-//   emptyText: {
-//     fontStyle: 'italic',
-//     color: '#666',
-//   },
-//   qrItem: {
-//     padding: 12,
-//     backgroundColor: '#f2f2f2',
-//     borderRadius: 8,
-//     marginBottom: 10,
-//   },
-//   qrText: {
-//     fontSize: 14,
-//   },
-//   qrValue: {
-//     fontSize: 14,
-//     fontWeight: 'bold',
-//   },
-
-//   qrDate: {
-//     fontSize: 12,
-//     color: '#666',
-//   },
-
-//   clearButton: {
-//     marginBottom: 15,
-//   },
-
-// });
-
-
 import { useContext, useState } from 'react';
 import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
@@ -114,14 +6,13 @@ export default function DashboardScreen() {
   const { qrHistory, setQrHistory, reminders, setReminders } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('qr'); // 'qr' | 'calls'
 
-  //We select which list to display based on the active tab.
   const data = activeTab === 'qr' ? qrHistory : reminders;
 
   const confirmClearHistory = () => {
     const isQr = activeTab === 'qr';
     Alert.alert(
       isQr ? 'Delete QR History' : 'Delete Calls History',
-      isQr ? 'Are you sure you want to delete all scanned QR codes?' : 'Are you sure you want to delete all scheduled calls?',
+      isQr ? 'Are you sure you want to delete all scanned QR codes?' : 'Are you sure you want to delete all calls history?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -140,7 +31,7 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Dashboard</Text>
 
-      {/* Tabs to change view */}
+      {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'qr' && styles.activeTab]}
@@ -173,7 +64,7 @@ export default function DashboardScreen() {
 
       {data.length === 0 ? (
         <Text style={styles.emptyText}>
-          {activeTab === 'qr' ? 'No scanned QRs yet' : 'No scheduled calls yet'}
+          {activeTab === 'qr' ? 'No scanned QRs yet' : 'No calls yet'}
         </Text>
       ) : (
         <FlatList
@@ -189,10 +80,18 @@ export default function DashboardScreen() {
                 </>
               ) : (
                 // Call Rendering
+                // Aquí diferenciamos si es historial o recordatorio
                 <>
-                  <Text style={styles.itemValue}>📞 {item.contactName}</Text>
+                  <Text style={styles.itemValue}>
+                    {item.type === 'history' ? '📞 Call Made' : '⏰ Reminder'}
+                  </Text>
+                  <Text style={{fontSize: 15, fontWeight: 'bold', marginBottom: 2}}>
+                    {item.contactName}
+                  </Text>
                   <Text style={styles.itemSub}>{item.phoneNumber}</Text>
-                  <Text style={styles.itemDate}>Scheduled: {item.scheduledTime}</Text>
+                  <Text style={styles.itemDate}>
+                    {item.type === 'history' ? 'Date:' : 'Scheduled:'} {item.scheduledTime}
+                  </Text>
                 </>
               )}
             </View>
@@ -264,9 +163,11 @@ const styles = StyleSheet.create({
     borderLeftColor: '#007AFF',
   },
   itemValue: {
-    fontSize: 16,
+    fontSize: 12, // Un poco más pequeño para la etiqueta
+    color: '#007AFF',
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 2,
+    textTransform: 'uppercase'
   },
   itemSub: {
     fontSize: 14,
