@@ -1,6 +1,6 @@
 import * as Contacts from 'expo-contacts';
 import * as Notifications from 'expo-notifications';
-import { useContext, useEffect, useState } from 'react'; // <--- Añadido useContext
+import { useContext, useEffect, useState } from 'react';
 import {
   Alert,
   Button,
@@ -13,7 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { AppContext } from '../context/AppContext'; // <--- Importamos el contexto
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppContext } from '../context/AppContext';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -30,7 +31,6 @@ export default function ContactsScreen() {
   const [selectedContact, setSelectedContact] = useState(null);
   const [customData, setCustomData] = useState({});
 
-  // <--- 1. RECUPERAMOS EL HISTORIAL DEL CONTEXTO
   const { reminders, setReminders } = useContext(AppContext);
 
   useEffect(() => {
@@ -58,37 +58,38 @@ export default function ContactsScreen() {
     setModalVisible(true);
 
     if (customData[contact.id]?.isEmergency) {
+      // Simulation of a quick alert if you touch an emergency contact
+      // (Optional: you can remove this if you want)
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Emergency contact',
-          body: 'You have selected an emergency contact!',
+          title: 'Emergency Contact Selected',
+          body: `You selected ${contact.name}`,
         },
         trigger: null,
       });
     }
   };
 
-  // <--- 2. FUNCIÓN DE LLAMADA ACTUALIZADA
   const handleCall = () => {
     if (selectedContact?.phoneNumbers?.[0]?.number) {
       const phoneNumber = selectedContact.phoneNumbers[0].number;
       
-      // Abrir teléfono
+      // Open phone dialer
       Linking.openURL(`tel:${phoneNumber}`);
 
-      // GUARDAR EN EL HISTORIAL
+      // SAVE TO HISTORY
       const newCallLog = {
         id: Date.now().toString(),
         contactName: selectedContact.name,
         phoneNumber: phoneNumber,
-        scheduledTime: new Date().toLocaleString(), // Fecha actual
-        type: 'history', // <--- Marca especial para diferenciarlo
+        scheduledTime: new Date().toLocaleString(),
+        type: 'history',
       };
 
       setReminders([...reminders, newCallLog]);
 
     } else {
-      Alert.alert("Error", "Este contacto no tiene un número válido.");
+      Alert.alert("Error", "This contact has no valid number.");
     }
   };
 
@@ -112,7 +113,7 @@ export default function ContactsScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.header}>My contacts</Text>
 
       <TextInput
@@ -157,63 +158,56 @@ export default function ContactsScreen() {
           <View style={styles.modalView}>
             <Text style={styles.modalText}>{selectedContact?.name}</Text>
             
-            <Text style={{textAlign: 'center', marginBottom: 10, color: '#666'}}>
+            <Text style={{textAlign: 'center', marginBottom: 20, color: '#666', fontSize: 16}}>
               {selectedContact?.phoneNumbers?.[0]?.number}
             </Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Description"
-              value={customData[selectedContact?.id]?.description || ''}
-              onChangeText={(text) =>
-                setCustomData(prev => ({
-                  ...prev,
-                  [selectedContact.id]: {
-                    ...prev[selectedContact.id],
-                    description: text,
-                  },
-                }))
-              }
-            />
+            {/* --- ACTION BUTTONS --- */}
             
-            <Button
-              title={
-                customData[selectedContact?.id]?.isEmergency
-                  ? 'Remove emergency contact'
-                  : 'Mark as emergency contact'
-              }
-              color={customData[selectedContact?.id]?.isEmergency ? "#FF3B30" : "#FF9500"}
-              onPress={toggleEmergency}
-            />
+            {/* 1. Emergency Button */}
+            <View style={{ width: '100%', marginBottom: 10 }}>
+                <Button
+                title={
+                    customData[selectedContact?.id]?.isEmergency
+                    ? 'Remove Emergency'
+                    : 'Mark as Emergency'
+                }
+                color={customData[selectedContact?.id]?.isEmergency ? "#FF3B30" : "#FF9500"}
+                onPress={toggleEmergency}
+                />
+            </View>
 
-            <View style={{ marginTop: 10 }}>
+            {/* 2. Call Button */}
+            <View style={{ width: '100%', marginBottom: 10 }}>
               <Button 
                 title={`Call ${selectedContact?.name}`} 
                 onPress={handleCall} 
               />
             </View>
 
-            <View style={{ marginTop: 15 }}>
+            {/* 3. Close Button */}
+            <View style={{ width: '100%', marginTop: 5 }}>
               <Button title="Close" color="#666" onPress={() => setModalVisible(false)} />
             </View>
+
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
     backgroundColor: '#e7e7e7ff',
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    marginTop: 30,
+    marginTop: 10,
   },
   searchInput: {
     height: 45,
@@ -264,6 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     width: '80%',
+    alignItems: 'center', // Center all content
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -271,17 +266,9 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   modalText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 15,
-    marginTop: 5,
   },
 });

@@ -1,7 +1,5 @@
-import { Ionicons } from '@expo/vector-icons'; // Librería de iconos
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
-// Importa tus pantallas (Ajusta la ruta si es necesario)
 import ContactsScreen from '../screens/ContactsScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import ScannerScreen from '../screens/ScannerScreen';
@@ -12,7 +10,7 @@ export default function BottomTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        // Lógica para elegir el icono según la pantalla
+        // logic to choose the icon depending on the screen
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
@@ -24,12 +22,12 @@ export default function BottomTabs() {
             iconName = focused ? 'list' : 'list-outline';
           }
 
-          // Devolver el componente Icono
+          // return the icon
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007AFF', // Color azul al estar activo
-        tabBarInactiveTintColor: 'gray',  // Color gris al estar inactivo
-        headerShown: true,               // Ocultamos la cabecera (header) por defecto
+        tabBarActiveTintColor: '#007AFF', 
+        tabBarInactiveTintColor: 'gray',  
+        headerShown: true,               
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />

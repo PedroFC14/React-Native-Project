@@ -80,17 +80,16 @@ export default function DashboardScreen() {
                 </>
               ) : (
                 // Call Rendering
-                // Aquí diferenciamos si es historial o recordatorio
                 <>
                   <Text style={styles.itemValue}>
-                    {item.type === 'history' ? '📞 Call Made' : '⏰ Reminder'}
+                    {'📞 Call Made' }
                   </Text>
                   <Text style={{fontSize: 15, fontWeight: 'bold', marginBottom: 2}}>
                     {item.contactName}
                   </Text>
                   <Text style={styles.itemSub}>{item.phoneNumber}</Text>
                   <Text style={styles.itemDate}>
-                    {item.type === 'history' ? 'Date:' : 'Scheduled:'} {item.scheduledTime}
+                    {'Date:'} {item.scheduledTime}
                   </Text>
                 </>
               )}
@@ -163,7 +162,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#007AFF',
   },
   itemValue: {
-    fontSize: 12, // Un poco más pequeño para la etiqueta
+    fontSize: 12, 
     color: '#007AFF',
     fontWeight: 'bold',
     marginBottom: 2,

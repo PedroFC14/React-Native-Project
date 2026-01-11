@@ -21,9 +21,7 @@ export default function ScannerScreen() {
   const handleBarcodeScanned = ({ data }) => {
     if (scanned) return;
 
-    // <--- 2. AÑADIR VIBRACIÓN AQUÍ
-    // 'NotificationFeedbackType.Success' da dos toques cortos y nítidos (muy satisfactorio).
-    // Si prefieres solo UN golpe seco, cambia .Success por .Heavy o .Medium
+    //vibration
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     setScanned(true);
