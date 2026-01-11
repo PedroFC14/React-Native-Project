@@ -1,4 +1,5 @@
 import { Camera, CameraView } from 'expo-camera';
+import * as Haptics from 'expo-haptics'; // <--- 1. IMPORTAR ESTO
 import { useContext, useEffect, useState } from 'react';
 import { Button, Linking, StyleSheet, Text, View } from 'react-native';
 import { AppContext } from '../context/AppContext';
@@ -19,6 +20,11 @@ export default function ScannerScreen() {
 
   const handleBarcodeScanned = ({ data }) => {
     if (scanned) return;
+
+    // <--- 2. AÑADIR VIBRACIÓN AQUÍ
+    // 'NotificationFeedbackType.Success' da dos toques cortos y nítidos (muy satisfactorio).
+    // Si prefieres solo UN golpe seco, cambia .Success por .Heavy o .Medium
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     setScanned(true);
     setLastQR(data);
