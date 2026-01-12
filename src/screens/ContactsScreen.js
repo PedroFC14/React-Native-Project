@@ -1,3 +1,7 @@
+//Introduction:
+// In that program we handle the contacts screen
+
+// Import native libraries
 import * as Contacts from 'expo-contacts';
 import * as Notifications from 'expo-notifications';
 import { useContext, useEffect, useState } from 'react';
@@ -16,6 +20,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppContext } from '../context/AppContext';
 
+
+// We configure notifications so that if they appear while the app is open,
+// they are shown (with sound and visual alert). Without this, the operating system
+// would silence them by default when the app is in the foreground.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -25,17 +33,28 @@ Notifications.setNotificationHandler({
 });
 
 export default function ContactsScreen() {
+
+  // Stores the mobile contact list
   const [contacts, setContacts] = useState([]);
+  // What the user types in the search bar
   const [searchText, setSearchText] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   const [customData, setCustomData] = useState({});
 
+  // Here we connect the contacts screen with the history managed by AppContext
   const { reminders, setReminders } = useContext(AppContext);
 
+
+  // It will run only at startup, since the last argument is empty, so it does not
+  // depend on any variable.
+  // With this useEffect, we ask for permission first (important due to the Sandbox model of the
+  // mobile we saw previously); and then we access and save all
+  // contacts with name and phone number.
   useEffect(() => {
     (async () => {
       const { status } = await Contacts.requestPermissionsAsync();
+
       if (status !== 'granted') {
         Alert.alert('Permission denied', 'Access to contacts is needed');
         return;
@@ -51,15 +70,15 @@ export default function ContactsScreen() {
 
       setContacts(validContacts);
     })();
-  }, []);
+  }, []);  
 
+  // When we press a contact, we activate the modal
+  // If is an emergency contact, we send a notification
   const handleContactPress = async (contact) => {
     setSelectedContact(contact);
     setModalVisible(true);
 
     if (customData[contact.id]?.isEmergency) {
-      // Simulation of a quick alert if you touch an emergency contact
-      // (Optional: you can remove this if you want)
       await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Emergency Contact Selected',
@@ -70,14 +89,16 @@ export default function ContactsScreen() {
     }
   };
 
+  // 1. First we call the selected contact
+  // 2. We register the call in the history
   const handleCall = () => {
     if (selectedContact?.phoneNumbers?.[0]?.number) {
       const phoneNumber = selectedContact.phoneNumbers[0].number;
-      
-      // Open phone dialer
-      Linking.openURL(`tel:${phoneNumber}`);
 
-      // SAVE TO HISTORY
+      //1
+      Linking.openURL(`tel:${phoneNumber}`);
+      
+      //2
       const newCallLog = {
         id: Date.now().toString(),
         contactName: selectedContact.name,
@@ -93,6 +114,7 @@ export default function ContactsScreen() {
     }
   };
 
+  //mark/desmark a contact as emergency
   const toggleEmergency = () => {
     setCustomData(prev => ({
       ...prev,
@@ -103,6 +125,8 @@ export default function ContactsScreen() {
     }));
   };
 
+  // It runs every time we write in the search bar, comparing the input
+  // with the name and the phone number
   const filteredContacts = contacts.filter(contact => {
     const name = contact.name.toLowerCase();
     const phone = contact.phoneNumbers[0]?.number || '';
@@ -112,6 +136,10 @@ export default function ContactsScreen() {
     );
   });
 
+  // The interface, the rendering.
+  // Here we have the header, the search bar, the contact list managed
+  // with FlatList, and the Modal, which is the native popup window activated when
+  // we press a contact and deactivated when pressing the "Close" button.
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>My contacts</Text>
@@ -158,6 +186,7 @@ export default function ContactsScreen() {
           <View style={styles.modalView}>
             <Text style={styles.modalText}>{selectedContact?.name}</Text>
             
+            {/*Show Name and phone number*/}
             <Text style={{textAlign: 'center', marginBottom: 20, color: '#666', fontSize: 16}}>
               {selectedContact?.phoneNumbers?.[0]?.number}
             </Text>
@@ -197,6 +226,11 @@ export default function ContactsScreen() {
   );
 }
 
+// We set the styles with the native API: StyleSheet.create()
+// We can see that no css file is needed.
+// We also see that to set the size of elements, we use a number,
+// which as we explained before will adjust equally to pixels
+// to look the same size on any device.
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -211,7 +245,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 45,
-    backgroundColor: '#fff',
+    backgroundColor: '#6db0f8ff',
     borderRadius: 10,
     paddingHorizontal: 15,
     marginBottom: 15,

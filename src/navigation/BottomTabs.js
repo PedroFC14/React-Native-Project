@@ -6,6 +6,8 @@ import ScannerScreen from '../screens/ScannerScreen';
 
 const Tab = createBottomTabNavigator();
 
+// In that program we just handle the navigation between the three screens, 
+// adding an icon to each screen
 export default function BottomTabs() {
   return (
     <Tab.Navigator

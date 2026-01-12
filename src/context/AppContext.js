@@ -6,7 +6,13 @@ export const AppContext = createContext();
 const STORAGE_KEY = 'qr_history';
 const REMINDERS_KEY = 'reminders_history';
 
+// Introdution:
+// This file is the brain of the app's memory. It's responsible for ensuring that 
+// if you close the app and open it again tomorrow, your data is still there, 
+// we do it thorough AsyncStorage
+
 export function AppProvider({ children }) {
+  //variables to sabe the qrs and the calls
   const [qrHistory, setQrHistory] = useState([]);
   const [reminders, setReminders] = useState([]);
 
@@ -16,16 +22,17 @@ export function AppProvider({ children }) {
     loadReminders();
   }, []);
 
-  // Save history each time it changes
+  // Save history each time it changes (a qr has been scanned)
   useEffect(() => {
     saveHistory();
   }, [qrHistory]);
 
-  // Save reminders each time it changes
+  // Save reminders each time it changes (a call has been made)
   useEffect(() => {
     saveReminders();
   }, [reminders]);
 
+  //load the historial -> read the JSON where is saved the text with the history information
   const loadHistory = async () => {
     try {
       const storedHistory = await AsyncStorage.getItem(STORAGE_KEY);
@@ -37,6 +44,7 @@ export function AppProvider({ children }) {
     }
   };
 
+  //with JSON.stringify we change the variable to text, to enable to save it.
   const saveHistory = async () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(qrHistory));
@@ -65,6 +73,8 @@ export function AppProvider({ children }) {
     }
   };
 
+  // here with the "provider" we can access to that program by useContext(AppContext)
+  // and access to all the histories
   return (
     <AppContext.Provider
       value={{

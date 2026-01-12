@@ -13,7 +13,7 @@ export default function ScannerScreen() {
 
   useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
+      const { status } = await Camera.requestCameraPermissionsAsync();  //permission to acces to the camera
       setHasPermission(status === 'granted');
     })();
   }, []);
