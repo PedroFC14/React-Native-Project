@@ -1,16 +1,21 @@
-import { useContext, useState } from 'react';
-import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { AppContext } from '../context/AppContext';
+//useState: to control the active tab. useContext: to access global app data
+import { useContext, useState } from 'react'; 
+import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // react native components
+import { AppContext } from '../context/AppContext'; //import global context with QR and calls history
 
-export default function DashboardScreen() {
+export default function DashboardScreen() { // Screen that shows the dashboard of the app
+  //Global data from context:
   const { qrHistory, setQrHistory, reminders, setReminders } = useContext(AppContext);
-  const [activeTab, setActiveTab] = useState('qr'); // 'qr' | 'calls'
+  const [activeTab, setActiveTab] = useState('qr'); // controls which tab is active 
 
+  // Select data depending on tab
   const data = activeTab === 'qr' ? qrHistory : reminders;
 
+  // This function shows a confirmation alert before deleting data
   const confirmClearHistory = () => {
     const isQr = activeTab === 'qr';
-    Alert.alert(
+    Alert.alert( // Displays a pop-up message
+      // Title changes depending on the active tab
       isQr ? 'Delete QR History' : 'Delete Calls History',
       isQr ? 'Are you sure you want to delete all scanned QR codes?' : 'Are you sure you want to delete all calls history?',
       [
@@ -18,6 +23,7 @@ export default function DashboardScreen() {
         {
           text: 'Delete',
           style: 'destructive',
+          // if the user confirms (Depending on tab)
           onPress: () => {
             if (isQr) setQrHistory([]);
             else setReminders([]);
@@ -28,12 +34,13 @@ export default function DashboardScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    // Main container of the dashboard
+    <View style={styles.container}> 
       <Text style={styles.title}>Dashboard</Text>
 
       {/* Tabs */}
       <View style={styles.tabsContainer}>
-        <TouchableOpacity
+        <TouchableOpacity // Toucbale makes a clickable component and Opacity to become a little transparent
           style={[styles.tab, activeTab === 'qr' && styles.activeTab]}
           onPress={() => setActiveTab('qr')}
         >
@@ -52,6 +59,7 @@ export default function DashboardScreen() {
         Total: {data.length}
       </Text>
 
+      {/*Clear data button*/ }
       {data.length > 0 && (
         <View style={styles.clearButton}>
           <Button
@@ -62,14 +70,15 @@ export default function DashboardScreen() {
         </View>
       )}
 
+      {/* Empty state (if there is no data)*/}
       {data.length === 0 ? (
         <Text style={styles.emptyText}>
           {activeTab === 'qr' ? 'No scanned QRs yet' : 'No calls yet'}
         </Text>
-      ) : (
-        <FlatList
+      ) : ( 
+        <FlatList // Displays the data as a scrollable list
           data={data}
-          keyExtractor={(item, index) => item.id || index.toString()}
+          keyExtractor={(item, index) => item.id || index.toString()} // give each item a unique key
           renderItem={({ item }) => (
             <View style={styles.itemCard}>
               {activeTab === 'qr' ? (
@@ -101,6 +110,7 @@ export default function DashboardScreen() {
   );
 }
 
+// Defines the design
 const styles = StyleSheet.create({
   container: {
     flex: 1,
