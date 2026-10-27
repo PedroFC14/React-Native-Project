@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native'; // allows app to move between screens
 import { AppProvider } from './src/context/AppContext'; //global data to the whole app
-import BottomTabs from './src/navigation/BottomTabs';  // main  navigation layour, shows the bottom tab bar
+import BottomTabs from './src/navigation/BottomTabs'; // main  navigation layour, shows the bottom tab bar
 
 export default function App() { // Root component of the app
   return (

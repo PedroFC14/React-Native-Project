@@ -1,7 +1,7 @@
 import { Camera, CameraView } from 'expo-camera'; // We import the camera tools from Expo
 import * as Haptics from 'expo-haptics'; // This is used to make the phone vibrate 
 // This are react hooks. useState (save data), useEffect(to run code when the screen loads), useContext(to use global data from the app)
-import { useContext, useEffect, useState } from 'react'; 
+import { useContext, useEffect, useState } from 'react';
 import { Button, Linking, StyleSheet, Text, View } from 'react-native'; // react components
 import { AppContext } from '../context/AppContext'; // imports our global context
 

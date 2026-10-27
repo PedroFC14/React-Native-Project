@@ -1,5 +1,5 @@
 //useState: to control the active tab. useContext: to access global app data
-import { useContext, useState } from 'react'; 
+import { useContext, useState } from 'react';
 import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // react native components
 import { AppContext } from '../context/AppContext'; //import global context with QR and calls history
 

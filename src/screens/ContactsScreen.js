@@ -126,7 +126,7 @@ export default function ContactsScreen() {
   };
 
   // It runs every time we write in the search bar, comparing the input
-  // with the name and the phone number
+  // with the name and the phone number. To show the filtered contacts.
   const filteredContacts = contacts.filter(contact => {
     const name = contact.name.toLowerCase();
     const phone = contact.phoneNumbers[0]?.number || '';
@@ -229,7 +229,7 @@ export default function ContactsScreen() {
 // We set the styles with the native API: StyleSheet.create()
 // We can see that no css file is needed.
 // We also see that to set the size of elements, we use a number,
-// which as we explained before will adjust equally to pixels
+// that as we explained before will adjust equally to pixels
 // to look the same size on any device.
 const styles = StyleSheet.create({
   container: {

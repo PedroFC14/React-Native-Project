@@ -1,29 +1,98 @@
 # Native Manager Suite
 
-Proyecto desarrollado en React Native con Expo.
+![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=black)
+![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
+![Android | iOS](https://img.shields.io/badge/plataforma-Android%20%7C%20iOS-lightgrey)
 
-Aplicación Todo-en-Uno que demuestra el uso de:
-- Cámara (QR Scanner)
-- Contactos
-- Notificaciones
-- Estado global y persistencia
+Aplicación móvil multiplataforma (Android e iOS) hecha con **React Native** y **Expo**. Reúne en una sola app varias funciones que usan las **APIs nativas del teléfono**:
 
+- un **lector de códigos QR** que usa la cámara;
+- la **agenda de contactos**, desde la que se puede llamar y marcar contactos de emergencia;
+- **notificaciones locales**;
+- un **panel con el historial** de QR escaneados y llamadas, que se conserva al cerrar la app.
 
+> **Proyecto propio, hecho desde cero** por Pedro ([@PedroFC14](https://github.com/PedroFC14)) y José ([@joseaguilaar](https://github.com/joseaguilaar)) para una asignatura de nuestro **Erasmus**. Todo el código de la aplicación es nuestro.
 
-que decir de contacts:
-- FlatList (contactos)
-- expo-contacts y expo-notifications
-- useEffect
+---
 
+## Capturas
 
-1. acceso a API's nativas, con expo-contacts leemos la agenda de contactos del telefono y 
-   con expo-notifications nos conectamos con las notificaciones del movil para poder lanzarlas.
+<p align="center">
+  <img src="docs/screenshots/dashboard-qr.png" alt="Dashboard con el historial de códigos QR escaneados" width="260">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/dashboard-calls.png" alt="Dashboard con el historial de llamadas" width="260">
+</p>
+<p align="center"><em>Dashboard: historial de QR escaneados y de llamadas (con datos de ejemplo).</em></p>
 
-2. interaccionamos con la app del telefono con Linking.openURL, para salir de mi app y abrir la aplicación nativa de Teléfono.
+<!--
+  Vídeo de demostración: grabad la pantalla del móvil, arrastrad el .mp4 a la caja
+  de edición de este README en GitHub y pegad aquí el enlace que se genera.
+-->
 
-3. Hemos usado flatList en vez de scrollView simple, consiguiendo la virtualizacion tal y como hemos explicado antes.
-   Basicamente con flaList se renderizan solo los contactos que caben en la pantalla para ahorrar memoria, reciclando las vistas a medida que hacemos scroll. En vez de tener todos los contactos de la lista renderizados como pasaria con scrollView y ocupando espacio.
+## Funcionalidades
 
-4. Uso the safeAreaView, esto garantiza que la app se vea bien en un iPhone 15 con "Isla Dinámica" o en un Android antiguo
+### Escáner QR
+- Pide permiso para usar la cámara y abre la **cámara trasera a pantalla completa** (`expo-camera`).
+- Detecta solo **códigos QR** e ignora otros códigos de barras.
+- Al leer uno, el móvil **vibra** para confirmarlo (`expo-haptics`) y muestra su contenido en pantalla.
+- Si el QR contiene una **URL**, la abre automáticamente en el navegador (`Linking`).
+- Guarda cada lectura en el historial con su **fecha y hora**. El botón *Scan another QR* permite seguir escaneando.
 
-5. El registro de llamada no se guarda solo en la pantalla. Al hacer una llamada, se actualiza el historial (setReminders) que luego se ve en el Dashboard, como veremos ahora.   
+### Contactos
+- Lee la **agenda del teléfono** (`expo-contacts`), previo permiso, y muestra solo los contactos que tienen número.
+- Tiene un **buscador** que filtra por nombre o por número mientras se escribe.
+- Usa `FlatList` en lugar de `ScrollView`, que solo dibuja los contactos visibles y reutiliza las vistas al hacer scroll. Así la app funciona bien aunque la agenda tenga cientos de contactos.
+- Al tocar un contacto se abre una ventana emergente (`Modal`) con varias opciones:
+  - **Llamar**: abre la app de Teléfono del sistema (`tel:`) y registra la llamada en el historial.
+  - **Marcar como emergencia**: el contacto pasa a verse en rojo y, cada vez que se selecciona, la app lanza una **notificación local** (`expo-notifications`).
+- `SafeAreaView` hace que la interfaz se adapte a muescas, a la isla dinámica y a los distintos tamaños de pantalla.
+
+### Dashboard
+- Tiene dos pestañas, **QR Codes** y **Calls**, y muestra el número total de registros de la que está abierta.
+- Incluye un botón para **borrar el historial**, que pide confirmación antes de hacerlo.
+- Muestra un mensaje cuando la lista está vacía.
+
+### Estado global y persistencia
+- Un `AppContext` (Context API de React) comparte los historiales entre todas las pantallas.
+- Los datos se guardan en el teléfono con **AsyncStorage**: se cargan al abrir la app y se guardan cada vez que cambian, así que se conservan al cerrarla.
+
+## Arquitectura
+
+```
+index.js              punto de entrada (registerRootComponent)
+└── App.js            AppProvider + NavigationContainer
+    ├── src/context/AppContext.js       estado global (historial de QR y de llamadas) + AsyncStorage
+    └── src/navigation/BottomTabs.js    barra de pestañas inferior
+        ├── src/screens/DashboardScreen.js
+        ├── src/screens/ScannerScreen.js
+        └── src/screens/ContactsScreen.js
+```
+
+## Tecnologías
+
+| Área | Herramientas |
+|---|---|
+| Framework | React Native 0.81, React 19, Expo SDK 54 |
+| Navegación | React Navigation (Bottom Tabs) |
+| APIs nativas | `expo-camera`, `expo-contacts`, `expo-notifications`, `expo-haptics`, `Linking` |
+| Estado y persistencia | Context API, `useState` / `useEffect`, AsyncStorage |
+| Calidad | ESLint (`eslint-config-expo`) |
+
+## Cómo ejecutarla
+
+**Requisitos:** Node.js (versión LTS) y la app **Expo Go** instalada en el móvil ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) / [iOS](https://apps.apple.com/app/expo-go/id982107779)).
+
+```bash
+git clone https://github.com/PedroFC14/React-Native-Project.git
+cd React-Native-Project
+npm install
+npx expo start
+```
+
+Después, escanea el QR que aparece en la terminal con Expo Go (en Android) o con la cámara (en iOS).
+
+## Autores
+
+- **Pedro**: [@PedroFC14](https://github.com/PedroFC14)
+- **José**: [@joseaguilaar](https://github.com/joseaguilaar)
